@@ -13,22 +13,38 @@ jobs:
       contents: read
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
-      - name: Install dependencies
-        working-directory: backend
-        run: |
-          python -m venv venv
-          source venv/bin/activate
-          pip install -r requirements.txt
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
 
-      - name: Zip backend folder for deployment
+      - name: Install Angular CLI
+        run: npm install -g @angular/cli
+
+      - name: Install frontend dependencies
+        working-directory: ./frontend
+        run: npm install
+
+      - name: Build Angular app
+        working-directory: ./frontend
+        run: npm run build -- --output-path=dist
+
+      - name: Copy Angular build to backend static folder
+        run: |
+          mkdir -p backend/static
+          cp -r frontend/dist/* backend/static/
+
+      - name: Install backend dependencies
+        run: pip install -r backend/requirements.txt
+
+      - name: Zip backend with frontend build
         run: |
           cd backend
           zip -r ../release.zip . -x "venv/*" "__pycache__/*"
@@ -56,7 +72,7 @@ jobs:
           name: python-app
 
       - name: Unzip artifact
-        run: unzip release.zip -d app
+        run: unzip release.zip
 
       - name: Login to Azure
         uses: azure/login@v2
