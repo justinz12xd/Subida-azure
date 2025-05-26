@@ -47,3 +47,17 @@ export class AdapterDataService {
 
 
 }
+
+export class ApiService {
+  private baseUrl = environment.apiUrl;
+
+  constructor(private http: HttpClient) {}
+
+  getDatos() {
+    return this.http.get(`${this.baseUrl}/backend`);
+  }
+
+  postDatos(data: any) {
+    return this.http.post(`${this.baseUrl}/backend`, data);
+  }
+}
